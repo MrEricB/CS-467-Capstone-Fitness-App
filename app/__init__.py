@@ -12,7 +12,7 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
 
-    # Import and register blueprints
+    # Import and register blueprints (RESTful APIs)
     from app.routes.user_routes import user_blueprint
     from app.routes.challenge_routes import challenge_blueprint
     # To be completed at a later date
@@ -25,3 +25,9 @@ def create_app():
     # app.register_blueprint(social_blueprint, url_prefix='/social')
 
     return app
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Loads user for session management (Flask-Login)."""
+    from app.models import User
+    return User.query.get(int(user_id))

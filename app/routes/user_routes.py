@@ -1,60 +1,98 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash
-# from app.models import db, User  ***Doesn't exist yet***
+from flask import Blueprint, request, jsonify
+from flask_login import login_user, logout_user, login_required, current_user
+from app.models import db, User
 
 user_blueprint = Blueprint('users', __name__)
 
 
+# POST: Register a new user
 @user_blueprint.route('/register', methods=['GET', 'POST'])
 def register_user():
-    if request.method == 'POST':
-        data = request.form
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
+    """Register a new user"""
+    data = request.get_json()
 
-        if not username or not email or not password:
-            return render_template('register.html', error="All fields are required.")
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
 
-        if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
-            return render_template('register.html', error="User already exists.")
+    if not username or not email or not password:
+        return jsonify({"error": "All fields are required."}), 400
 
-        new_user = User(username=username, email=email)
-        new_user.set_password(password)
-        db.session.add(new_user)
-        db.session.commit()
+    if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
+        return jsonify({"error": "User already exists."}), 400
 
-        return redirect(url_for('users.login_user'))
+    new_user = User(username=username, email=email)
+    new_user.set_password(password)
+    db.session.add(new_user)
+    db.session.commit()
 
-    return render_template('register.html')
+    return jsonify({
+        "message": "User registered successfully.",
+        "user": {"id": new_user.id, "username": new_user.username, "email": new_user.email}
+    }), 201
 
 
+# POST: Login user
 @user_blueprint.route('/login', methods=['GET', 'POST'])
 def login_user():
-    if request.method == 'POST':
-        data = request.form
-        username = data.get('username')
-        password = data.get('password')
+    """Authenticate user and return a session token"""
+    data = request.get_json()
 
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            return redirect(url_for('challenges.list_challenges'))
-        return render_template('login.html', error="Invalid username or password.")
+    username = data.get('username')
+    password = data.get('password')
 
-    return render_template('login.html')
+    user = User.query.filter_by(username=username).first()
+    
+    if user and user.check_password(password):
+        login_user(user)
+        return jsonify({"message": "Login successful", "user": {"id": user.id, "username": user.username}}), 200
 
+    return jsonify({"error": "Invalid username or password."}), 401
 
+# GET: Logout user
 @user_blueprint.route('/logout', methods=['GET'])
 # @login_required   ***To be completed later***
 def logout_user_route():
     """Logs out the current user."""
-    # logout_user()  ***To be completed later***
-    flash("You have been logged out successfully.", "info")
-    return redirect(url_for('users.login_user'))
+    logout_user()
+    return jsonify({"message": "Logout successful"}), 200
 
 
+# GET: Retrieve user profile
 @user_blueprint.route('/profile/<int:user_id>', methods=['GET'])
 def user_profile(user_id):
-    user = User.query.get_or_404(user_id)
-    created_challenges = user.challenges_created
-    joined_challenges = user.challenge_participations
-    return render_template('profile.html', user=user, created_challenges=created_challenges, joined_challenges=joined_challenges)
+    """Retrieve the authenticated user's profile"""
+    return jsonify({
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email
+    }), 200
+
+# PUT: Update user details
+@user_blueprint.route('/update', methods=['PUT'])
+@login_required
+def update_user():
+    """Update the authenticated user's details"""
+    data = request.get_json()
+
+    if "username" in data:
+        current_user.username = data['username']
+    if "email" in data:
+        current_user.email = data['email']
+    
+    db.session.commit()
+
+    return jsonify({
+        "message": "User updated successfully.",
+        "user": {"id": current_user.id, "username": current_user.username, "email": current_user.email}
+    }), 200
+
+# DELETE: Delete user account
+@user_blueprint.route('/delete', methods=['DELETE'])
+@login_required
+def delete_user():
+    """Delete the authenticated user's account"""
+    db.session.delete(current_user)
+    db.session.commit()
+
+    return jsonify({"message": "User account deleted successfully"}), 200
