@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+  <h1>Available Fitness Challenges</h1>
+  
+  {% if session.get('user_id') and user_badges %}
+    <h3>Your Earned Badges</h3>
+    <div>
+      {% for badge in user_badges %}
+        <img src="{{ url_for('static', filename='badges/' ~ badge) }}" alt="{{ badge }}" style="max-height:50px; margin-right:10px;">
+      {% endfor %}
+    </div>
+    <hr>
+  {% endif %}
+  
+  <form method="get" action="{{ url_for('search') }}" class="mb-3">
+    <input type="text" name="query" placeholder="Search by tags" class="form-control">
+    <button type="submit" class="btn btn-primary mt-2">Search</button>
+  </form>
+  
+  <ul class="list-group">
+    {% for challenge in challenges %}
+      <li class="list-group-item">
+        <a href="{{ url_for('challenge', challenge_id=challenge.id) }}">
+          {{ challenge.challenge_type }}: {{ challenge.description }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}
