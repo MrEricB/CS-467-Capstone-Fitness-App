@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block content %}
+  <h2>Wall of Fame for "{{ challenge.challenge_type }}" Challenge</h2>
+  <ul class="list-group">
+    {% for entry in wall_entries %}
+      <li class="list-group-item">
+        {{ entry.user.username }} completed on {{ entry.completed_at.strftime('%m-%d-%Y') }}
+      </li>
+    {% else %}
+      <li class="list-group-item">No completions yet.</li>
+    {% endfor %}
+  </ul>
+  <a href="{{ url_for('challenge', challenge_id=challenge.id) }}" class="btn btn-primary mt-3">
+    Back to Challenge
+  </a>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+  <h2>Your Favorites</h2>
+  <ul class="list-group">
+    {% for challenge in challenges %}
+      <li class="list-group-item">
+        <a href="{{ url_for('challenge', challenge_id=challenge['id']) }}">
+          {{ challenge['challenge_type'] }}: {{ challenge['description'] }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}
