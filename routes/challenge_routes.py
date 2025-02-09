@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, session, request, current_app
-from werkzeug.utils import secure_filename
 import os
-from models import db, Challenge, Goal, ChallengeBadge, CompletedChallenge, UserChallengeStatus, ChatMessage
+from flask import Blueprint, render_template, redirect, url_for, flash, session, request
+from werkzeug.utils import secure_filename
+from models import db, Challenge, Goal, ChallengeBadge, ChatMessage, UserChallengeStatus, CompletedChallenge, Favorite
 from forms import ChallengeForm, ChatForm
+
+from flask import current_app # need to access app.xxxxx
 
 challenge_bp = Blueprint('challenge_bp', __name__)
 
@@ -10,7 +12,6 @@ challenge_bp = Blueprint('challenge_bp', __name__)
 def index():
     challenges = Challenge.query.order_by(Challenge.created_at.desc()).all()
     user_badges = []
-
     if session.get('user_id'):
         completed_chals = CompletedChallenge.query.filter_by(user_id=session['user_id']).all()
         for comp in completed_chals:
@@ -19,7 +20,7 @@ def index():
                 for badge in challenge_obj.badges:
                     user_badges.append(badge.badge)
         user_badges = list(set(user_badges))
-
+    
     return render_template('index.html', challenges=challenges, user_badges=user_badges)
 
 @challenge_bp.route('/create', methods=['GET', 'POST'])
@@ -65,12 +66,12 @@ def create_challenge():
 
         db.session.commit()
         flash('Challenge created successfully!')
-        return redirect(url_for('challenge_bp.challenge_detail', challenge_id=new_challenge.id))
+        return redirect(url_for('challenge_bp.challenge', challenge_id=new_challenge.id))
 
     return render_template('create_challenge.html', form=form, available_badges=available_badges)
 
 @challenge_bp.route('/<int:challenge_id>', methods=['GET'])
-def challenge_detail(challenge_id):
+def challenge(challenge_id):
     challenge_obj = Challenge.query.get(challenge_id)
     if not challenge_obj:
         flash('Challenge not found.')
@@ -95,7 +96,7 @@ def challenge_detail(challenge_id):
 
     chat_form = ChatForm()
 
-    return render_template('challenge_detail.html',
+    return render_template('challenge.html',
                            challenge=challenge_obj,
                            goals=goals,
                            chat_messages=chat_messages,
@@ -103,19 +104,17 @@ def challenge_detail(challenge_id):
                            is_completed=is_completed,
                            chat_form=chat_form)
 
-@challenge_bp.route('/<int:challenge_id>/chat', methods=['POST'])
+@challenge_bp.route('/challenge/<int:challenge_id>/chat', methods=['POST'])
 def chat(challenge_id):
     if 'user_id' not in session:
         flash('Please log in to participate in chat.')
-        return redirect(url_for('user_bp.login'))
-
+        return redirect(url_for('login'))
     form = ChatForm()
     if form.validate_on_submit():
         image_filename = None
         if form.chat_image.data:
             image_filename = secure_filename(form.chat_image.data.filename)
             form.chat_image.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename))
-
         new_message = ChatMessage(
             challenge_id=challenge_id,
             user_id=session['user_id'],
@@ -127,7 +126,21 @@ def chat(challenge_id):
     else:
         flash("There was an error with your chat message.")
 
-    return redirect(url_for('challenge_bp.challenge_detail', challenge_id=challenge_id))
+    return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
+
+@challenge_bp.route('/<int:challenge_id>/complete', methods=['POST'])
+def complete_challenge(challenge_id):
+    if 'user_id' not in session:
+        flash('Please log in.')
+        return redirect(url_for('user_bp.login'))
+
+    if not CompletedChallenge.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first():
+        comp = CompletedChallenge(user_id=session['user_id'], challenge_id=challenge_id)
+        db.session.add(comp)
+        db.session.commit()
+        flash('Challenge completed! You are now on the Wall of Fame.')
+
+    return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
 
 @challenge_bp.route('/<int:challenge_id>/complete_goal/<int:goal_id>')
 def complete_goal(challenge_id, goal_id):
@@ -154,7 +167,7 @@ def complete_goal(challenge_id, goal_id):
 
     db.session.commit()
     flash('Goal marked as complete!')
-    return redirect(url_for('challenge_bp.challenge_detail', challenge_id=challenge_id))
+    return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
 
 @challenge_bp.route('/<int:challenge_id>/complete', methods=['POST'])
 def complete_challenge(challenge_id):
@@ -169,3 +182,22 @@ def complete_challenge(challenge_id):
         flash('Challenge completed! You are now on the Wall of Fame.')
 
     return redirect(url_for('challenge_bp.challenge_detail', challenge_id=challenge_id))
+
+
+
+
+# TODO: flush out; only users who have completed all the goals should be in wall of fame
+@challenge_bp.route('/wall_of_fame')
+def wall_of_fame():
+    wall_entries = CompletedChallenge.query.order_by(CompletedChallenge.completed_at.desc()).all()
+    return render_template('wall_of_fame.html', wall_entries=wall_entries)
+
+# ---------------------------
+# Search Route
+# NOTE: not implemented or tested yet
+# ---------------------------
+@challenge_bp.route('/search')
+def search():
+    query = request.args.get('query', '')
+    challenges = Challenge.query.filter(Challenge.tags.contains(query)).all()
+    return render_template('index.html', challenges=challenges)

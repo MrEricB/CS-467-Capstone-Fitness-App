@@ -9,18 +9,18 @@
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">Fitness App</a>
+        <a class="navbar-brand" href="{{ url_for('challenge_bp.index') }}">Fitness App</a>
         <div class="collapse navbar-collapse">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             {% if session.get('user_id') %}
-              <li class="nav-item"><a class="nav-link" href="{{ url_for('create_challenge') }}">Create Challenge</a></li>
-              <li class="nav-item"><a class="nav-link" href="{{ url_for('favorites') }}">Favorites</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('challenge_bp.create_challenge') }}">Create Challenge</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('user_bp.favorites') }}">Favorites</a></li>
               <!-- move below to a link on each challenge since it is the challenges wall of fame -->
-              <!-- <li class="nav-item"><a class="nav-link" href="{{ url_for('wall_of_fame') }}">Wall of Fame</a></li> -->
-              <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('challenge_bp.wall_of_fame') }}">Wall of Fame</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('user_bp.logout') }}">Logout</a></li>
             {% else %}
-              <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-              <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('user_bp.login') }}">Login</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('user_bp.register') }}">Register</a></li>
             {% endif %}
           </ul>
         </div>
