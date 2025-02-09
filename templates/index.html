@@ -12,7 +12,7 @@
     <hr>
   {% endif %}
   
-  <form method="get" action="{{ url_for('search') }}" class="mb-3">
+  <form method="get" action="{{ url_for('challenge_bp.search') }}" class="mb-3">
     <input type="text" name="query" placeholder="Search by tags" class="form-control">
     <button type="submit" class="btn btn-primary mt-2">Search</button>
   </form>
@@ -20,7 +20,7 @@
   <ul class="list-group">
     {% for challenge in challenges %}
       <li class="list-group-item">
-        <a href="{{ url_for('challenge', challenge_id=challenge.id) }}">
+        <a href="{{ url_for('challenge_bp.challenge', challenge_id=challenge.id) }}">
           {{ challenge.challenge_type }}: {{ challenge.description }}
         </a>
       </li>

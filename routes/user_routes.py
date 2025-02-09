@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, session
+from flask import Blueprint, render_template, session, redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from models import db, User, Favorite
 from forms import RegistrationForm, LoginForm
-from models import db, User
 
 user_bp = Blueprint('user_bp', __name__)
 
@@ -13,9 +14,7 @@ def register():
             flash('Username already exists. Please choose another.')
             return render_template('register.html', form=form)
         hashed_password = generate_password_hash(form.password.data)
-        new_user = User(username=form.username.data,
-                        email=form.email.data,
-                        password=hashed_password)
+        new_user = User(username=form.username.data, email=form.email.data, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         flash('Registration successful! Please log in.')
@@ -40,3 +39,14 @@ def logout():
     session.clear()
     flash('Logged out successfully.')
     return redirect(url_for('challenge_bp.index'))
+
+@user_bp.route('/favorites')
+def favorites():
+    if 'user_id' not in session:
+        flash('Please log in.')
+        return redirect(url_for('user_bp.login'))
+    
+    favs = Favorite.query.filter_by(user_id=session['user_id']).all()
+    challenges = [fav.challenge for fav in favs]
+    
+    return render_template('favorites.html', challenges=challenges)
