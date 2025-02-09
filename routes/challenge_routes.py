@@ -169,22 +169,6 @@ def complete_goal(challenge_id, goal_id):
     flash('Goal marked as complete!')
     return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
 
-@challenge_bp.route('/<int:challenge_id>/complete', methods=['POST'])
-def complete_challenge(challenge_id):
-    if 'user_id' not in session:
-        flash('Please log in.')
-        return redirect(url_for('user_bp.login'))
-
-    if not CompletedChallenge.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first():
-        comp = CompletedChallenge(user_id=session['user_id'], challenge_id=challenge_id)
-        db.session.add(comp)
-        db.session.commit()
-        flash('Challenge completed! You are now on the Wall of Fame.')
-
-    return redirect(url_for('challenge_bp.challenge_detail', challenge_id=challenge_id))
-
-
-
 
 # TODO: flush out; only users who have completed all the goals should be in wall of fame
 @challenge_bp.route('/wall_of_fame')
