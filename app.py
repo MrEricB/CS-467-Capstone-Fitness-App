@@ -29,6 +29,10 @@ with app.app_context():
     if not os.path.exists(app.config['BADGES_FOLDER']):
         os.makedirs(app.config['BADGES_FOLDER'])
 
+# Import and register Blueprints
+from user_routes import user_bp
+from challenge_routes import challenge_bp
+
 # Register blueprints
 app.register_blueprint(user_bp, url_prefix='/users')
 app.register_blueprint(challenge_bp, url_prefix='/challenges')
