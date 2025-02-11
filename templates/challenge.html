@@ -9,13 +9,23 @@
       <img src="{{ url_for('static', filename='uploads/' ~ challenge.image) }}" alt="Challenge Image" style="max-width:300px;">
     {% endif %}
   </div>
+
   {% if session.get('user_id') %}
-  <a href="{{ url_for('challenge_bp.wall_of_fame', challenge_id=challenge.id) }}" class="btn btn-secondary mt-3">
-    View Wall of Fame
-  </a>
+    {% set is_favorited = challenge in session.get('favorites', []) %}
+    <form method="post" action="{{ url_for('challenge_bp.add_to_favorites', challenge_id=challenge.id) }}" style="display: inline;">
+        <button type="submit" class="btn btn-outline-warning">
+            {% if is_favorited %}
+                ★ Unfavorite
+            {% else %}
+                ☆ Add to Favorites
+            {% endif %}
+        </button>
+    </form>
+    <a href="{{ url_for('challenge_bp.wall_of_fame', challenge_id=challenge.id) }}" class="btn btn-secondary mt-3">
+      View Wall of Fame
+    </a>
   {% endif %}
 
-  
   {% if challenge.badges|length > 0 %}
     <hr>
     <h3>Badges Earned</h3>
@@ -25,7 +35,7 @@
       {% endfor %}
     </div>
   {% endif %}
-  
+
   <hr>
   <h3>Goals</h3>
   <ul class="list-group">
@@ -43,7 +53,7 @@
       </li>
     {% endfor %}
   </ul>
-  
+
   <hr>
   <h3>Chat</h3>
   <div>
@@ -56,7 +66,7 @@
       </div>
     {% endfor %}
   </div>
-  
+
   {% if session.get('user_id') %}
     <form method="post" action="{{ url_for('challenge_bp.chat', challenge_id=challenge.id) }}" enctype="multipart/form-data" class="mt-3">
       {{ chat_form.hidden_tag() }}
@@ -80,11 +90,10 @@
   {% else %}
     <p>Please log in to participate in chat.</p>
   {% endif %}
-  
+
   <hr>
   {% if session.get('user_id') %}
     {% if not is_completed %}
-    <!-- bug were even if user doesn't complete all the challenges they get into the wall of fame -->
       <form method="post" action="{{ url_for('challenge_bp.complete_challenge', challenge_id=challenge.id) }}">
         <button type="submit" class="btn btn-success">Complete Challenge</button>
       </form>

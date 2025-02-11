@@ -40,6 +40,7 @@ def logout():
     flash('Logged out successfully.')
     return redirect(url_for('challenge_bp.index'))
 
+
 @user_bp.route('/favorites')
 def favorites():
     if 'user_id' not in session:

@@ -185,3 +185,38 @@ def search():
     query = request.args.get('query', '')
     challenges = Challenge.query.filter(Challenge.tags.contains(query)).all()
     return render_template('index.html', challenges=challenges)
+
+
+@challenge_bp.route('/<int:challenge_id>/favorite', methods=['POST'])
+def add_to_favorites(challenge_id):
+    if 'user_id' not in session:
+        flash('Please log in to favorite challenges.')
+        return redirect(url_for('user_bp.login'))
+
+    existing_fav = Favorite.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first()
+    if not existing_fav:
+        favorite = Favorite(user_id=session['user_id'], challenge_id=challenge_id)
+        db.session.add(favorite)
+        db.session.commit()
+        flash('Added to favorites!')
+    else:
+        flash('Challenge is already in your favorites.')
+
+    return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
+
+
+@challenge_bp.route('/<int:challenge_id>/unfavorite', methods=['POST'])
+def remove_from_favorites(challenge_id):
+    if 'user_id' not in session:
+        flash('Please log in to manage favorites.')
+        return redirect(url_for('user_bp.login'))
+
+    favorite = Favorite.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first()
+    if favorite:
+        db.session.delete(favorite)
+        db.session.commit()
+        flash('Removed from favorites.')
+    else:
+        flash('Challenge was not in your favorites.')
+
+    return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
