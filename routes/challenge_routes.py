@@ -134,13 +134,30 @@ def complete_challenge(challenge_id):
         flash('Please log in.')
         return redirect(url_for('user_bp.login'))
 
-    if not CompletedChallenge.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first():
-        comp = CompletedChallenge(user_id=session['user_id'], challenge_id=challenge_id)
-        db.session.add(comp)
-        db.session.commit()
-        flash('Challenge completed! You are now on the Wall of Fame.')
+    # Get all goals for the challenge
+    goals = Goal.query.filter_by(challenge_id=challenge_id).all()
+    goal_ids = [goal.id for goal in goals]
+
+    # Get completed goals by the user
+    completed_goals = UserChallengeStatus.query.filter_by(
+        user_id=session['user_id'],
+        challenge_id=challenge_id,
+        is_complete=True
+    ).all()
+    completed_goal_ids = [status.goal_id for status in completed_goals]
+
+    # Check if all goals are completed
+    if set(goal_ids) == set(completed_goal_ids):
+        if not CompletedChallenge.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first():
+            comp = CompletedChallenge(user_id=session['user_id'], challenge_id=challenge_id)
+            db.session.add(comp)
+            db.session.commit()
+            flash('Challenge completed! You are now on the Wall of Fame.')
+    else:
+        flash('You must complete all goals before completing the challenge.')
 
     return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
+
 
 @challenge_bp.route('/<int:challenge_id>/complete_goal/<int:goal_id>')
 def complete_goal(challenge_id, goal_id):
@@ -185,3 +202,38 @@ def search():
     query = request.args.get('query', '')
     challenges = Challenge.query.filter(Challenge.tags.contains(query)).all()
     return render_template('index.html', challenges=challenges)
+
+
+@challenge_bp.route('/<int:challenge_id>/favorite', methods=['POST'])
+def add_to_favorites(challenge_id):
+    if 'user_id' not in session:
+        flash('Please log in to favorite challenges.')
+        return redirect(url_for('user_bp.login'))
+
+    existing_fav = Favorite.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first()
+    if not existing_fav:
+        favorite = Favorite(user_id=session['user_id'], challenge_id=challenge_id)
+        db.session.add(favorite)
+        db.session.commit()
+        flash('Added to favorites!')
+    else:
+        flash('Challenge is already in your favorites.')
+
+    return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
+
+
+@challenge_bp.route('/<int:challenge_id>/unfavorite', methods=['POST'])
+def remove_from_favorites(challenge_id):
+    if 'user_id' not in session:
+        flash('Please log in to manage favorites.')
+        return redirect(url_for('user_bp.login'))
+
+    favorite = Favorite.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first()
+    if favorite:
+        db.session.delete(favorite)
+        db.session.commit()
+        flash('Removed from favorites.')
+    else:
+        flash('Challenge was not in your favorites.')
+
+    return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
