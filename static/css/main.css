@@ -1,0 +1,31 @@
+body {
+  background-color:rgb(107, 163, 247);
+}
+
+.titles {
+  color: antiquewhite;
+  margin: auto;
+  width: 60%;
+  background-color: #212529;
+  border-style: solid;
+  border-color: antiquewhite;
+  border-radius: 5em;
+}
+
+.titles .headers {
+  padding: 5%;
+  margin: auto;
+  text-align: center;
+  font-size: 2em;
+}
+
+.content {
+  color: antiquewhite;
+  padding: 5%;
+  margin: 2% auto;
+  width: 60%;
+  background-color: #212529;
+  border-style: solid;
+  border-color: antiquewhite;
+  border-radius: 5em;
+}

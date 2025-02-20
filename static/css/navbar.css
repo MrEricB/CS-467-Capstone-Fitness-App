@@ -1,7 +1,18 @@
 /* navbar active status indicator referenced from
     https://www.youtube.com/watch?v=JznsjrC3TOg */
+    .border-bottom {
+      --bs-border-color: antiquewhite;
+    }
     .navbar a {
-      color: #e6e6e6;
+      color: antiquewhite;
+    }
+
+    .navbar-toggler-icon {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='antiquewhite' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+
+    .navbar-toggler {
+      border-color: antiquewhite;
     }
 
     .navbar .nav-item .nav-link {
@@ -16,7 +27,7 @@
       right: 0;
       bottom: 0;
       height: 1px;
-      background-color: #e6e6e6;
+      background-color: antiquewhite;
       transition: all 0.5s ease;
       transform: scale(0);
     }
