@@ -19,10 +19,13 @@
   
   <ul class="list-group">
     {% for challenge in challenges %}
-      <li class="list-group-item">
+      <li class="list-group-item d-flex justify-content-between align-items-center">
         <a href="{{ url_for('challenge_bp.challenge', challenge_id=challenge.id) }}">
           {{ challenge.challenge_type }}: {{ challenge.description }}
         </a>
+        {% if session.get('user_id') and challenge.id in completed_challenge_ids %}
+          <button class="btn btn-success btn-sm" disabled>Completed</button>
+        {% endif %}
       </li>
     {% endfor %}
   </ul>

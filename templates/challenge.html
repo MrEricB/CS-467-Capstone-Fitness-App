@@ -95,13 +95,14 @@
   {% if session.get('user_id') %}
     {% if not is_completed %}
       <form method="post" action="{{ url_for('challenge_bp.complete_challenge', challenge_id=challenge.id) }}">
-        <button type="submit" class="btn btn-success" 
-            {% if goals|length != completed_goal_ids|length %} disabled {% endif %}>
+        <button type="submit" class="btn btn-success">
             Complete Challenge
         </button>
       </form>
       {% if goals|length != completed_goal_ids|length %}
-          <p class="text-warning mt-2">Complete all goals to unlock this button.</p>
+          <p class="text-warning mt-2">
+            You haven't completed all goals yet. Complete all goals to appear on the Wall of Fame.
+          </p>
       {% endif %}
     {% else %}
       <p class="text-success">Challenge Completed!</p>
