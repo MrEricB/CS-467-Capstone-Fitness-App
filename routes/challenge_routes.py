@@ -3,8 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, session,
 from werkzeug.utils import secure_filename
 from models import db, Challenge, Goal, ChallengeBadge, ChatMessage, UserChallengeStatus, CompletedChallenge, Favorite
 from forms import ChallengeForm, ChatForm
-
-from flask import current_app # need to access app.xxxxx
+from flask import current_app
 
 challenge_bp = Blueprint('challenge_bp', __name__)
 
@@ -158,7 +157,6 @@ def complete_challenge(challenge_id):
 
     return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
 
-
 @challenge_bp.route('/<int:challenge_id>/complete_goal/<int:goal_id>')
 def complete_goal(challenge_id, goal_id):
     if 'user_id' not in session:
@@ -186,12 +184,17 @@ def complete_goal(challenge_id, goal_id):
     flash('Goal marked as complete!')
     return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
 
-
-# TODO: flush out; only users who have completed all the goals should be in wall of fame
-@challenge_bp.route('/wall_of_fame')
-def wall_of_fame():
-    wall_entries = CompletedChallenge.query.order_by(CompletedChallenge.completed_at.desc()).all()
-    return render_template('wall_of_fame.html', wall_entries=wall_entries)
+# Wall of Fame for a specific challenge
+@challenge_bp.route('/<int:challenge_id>/wall_of_fame')
+def wall_of_fame(challenge_id):
+    challenge_obj = Challenge.query.get(challenge_id)
+    if not challenge_obj:
+        flash('Challenge not found.')
+        return redirect(url_for('challenge_bp.index'))
+    
+    wall_entries = CompletedChallenge.query.filter_by(challenge_id=challenge_id)\
+                    .order_by(CompletedChallenge.completed_at.desc()).all()
+    return render_template('challenge_wall_of_fame.html', wall_entries=wall_entries, challenge=challenge_obj)
 
 # ---------------------------
 # Search Route
@@ -202,7 +205,6 @@ def search():
     query = request.args.get('query', '')
     challenges = Challenge.query.filter(Challenge.tags.contains(query)).all()
     return render_template('index.html', challenges=challenges)
-
 
 @challenge_bp.route('/<int:challenge_id>/favorite', methods=['POST'])
 def add_to_favorites(challenge_id):
@@ -220,7 +222,6 @@ def add_to_favorites(challenge_id):
         flash('Challenge is already in your favorites.')
 
     return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
-
 
 @challenge_bp.route('/<int:challenge_id>/unfavorite', methods=['POST'])
 def remove_from_favorites(challenge_id):
