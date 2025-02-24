@@ -1,7 +1,12 @@
+/* main.css */
+/* This file is used to organize the consistent design and
+styling of elements for the application */
 body {
   background-color:rgb(107, 163, 247);
 }
 
+/* The titles class is used for the design of the title or header
+of each page */
 .titles {
   color: antiquewhite;
   margin: auto;
@@ -19,13 +24,20 @@ body {
   font-size: 2em;
 }
 
+/* The content class creates a baseline card or container with which to put
+content within that matches the overall theme of the webpage design.
+Combined with Bootstrap classes for styling needs */
 .content {
   color: antiquewhite;
   padding: 5%;
   margin: 2% auto;
-  width: 60%;
+  width: 75%;
   background-color: #212529;
   border-style: solid;
   border-color: antiquewhite;
   border-radius: 5em;
+}
+
+img {
+  background-color: antiquewhite;
 }

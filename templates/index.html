@@ -1,3 +1,4 @@
+<!-- index.html -->
 {% extends "layout.html" %}
 {% block content %}
   <div class="container titles">
@@ -5,7 +6,9 @@
   </div>
 
   {% if session.get('user_id') and user_badges %}
-    <div class="card content gap border-3">
+  <!-- Combined content css class with border-3 Bootstrap class for
+  card styling -->
+  <div class="card content gap border-3">
       <h3>Your Earned Badges</h3>
       <div>
         {% for badge in user_badges %}
