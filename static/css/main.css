@@ -39,5 +39,10 @@ Combined with Bootstrap classes for styling needs */
 }
 
 img {
-  background-color: antiquewhite;
+  background-color: white;
+  margin-top: 1%;
+}
+
+#btn-div {
+  text-align: end;
 }
