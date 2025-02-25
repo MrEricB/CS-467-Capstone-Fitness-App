@@ -1,29 +1,38 @@
+<!-- index.html -->
 {% extends "layout.html" %}
 {% block content %}
-  <h1>Available Fitness Challenges</h1>
-  
+  <div class="container titles">
+    <p class="headers">AVAILABLE FITNESS CHALLENGES</p>
+  </div>
+
   {% if session.get('user_id') and user_badges %}
-    <h3>Your Earned Badges</h3>
-    <div>
-      {% for badge in user_badges %}
-        <img src="{{ url_for('static', filename='badges/' ~ badge) }}" alt="{{ badge }}" style="max-height:50px; margin-right:10px;">
-      {% endfor %}
+  <!-- Combined content css class with border-3 Bootstrap class for
+  card styling -->
+  <div class="card content gap border-3">
+      <h3>Your Earned Badges</h3>
+      <div>
+        {% for badge in user_badges %}
+          <img src="{{ url_for('static', filename='badges/' ~ badge) }}" alt="{{ badge }}" style="max-height:50px; margin-right:10px;">
+        {% endfor %}
+      </div>
     </div>
-    <hr>
   {% endif %}
-  
-  <form method="get" action="{{ url_for('challenge_bp.search') }}" class="mb-3">
-    <input type="text" name="query" placeholder="Search by tags" class="form-control">
-    <button type="submit" class="btn btn-primary mt-2">Search</button>
-  </form>
-  
-  <ul class="list-group">
-    {% for challenge in challenges %}
-      <li class="list-group-item">
-        <a href="{{ url_for('challenge_bp.challenge', challenge_id=challenge.id) }}">
-          {{ challenge.challenge_type }}: {{ challenge.description }}
-        </a>
-      </li>
-    {% endfor %}
-  </ul>
+  <div class="card content gap border-3">
+    <form method="get" action="{{ url_for('challenge_bp.search') }}" class="mb-3">
+      <input type="text" name="query" placeholder="Search by tags" class="form-control">
+      <button type="submit" class="btn btn-primary mt-2">Search</button>
+    </form>
+  </div>
+
+  <div class="card content gap border-3">
+    <ul class="list-group">
+      {% for challenge in challenges %}
+        <li class="list-group-item">
+          <a href="{{ url_for('challenge_bp.challenge', challenge_id=challenge.id) }}">
+            {{ challenge.challenge_type }}: {{ challenge.description }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
 {% endblock %}

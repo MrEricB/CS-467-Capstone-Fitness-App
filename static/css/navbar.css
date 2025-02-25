@@ -1,27 +1,44 @@
-/* navbar active status indicator referenced from
-    https://www.youtube.com/watch?v=JznsjrC3TOg */
-    .navbar a {
-      color: #e6e6e6;
-    }
+/* Navbar.css */
+/* The adjustments in this file focus on the design, color, and
+responsiveness of the navbar */
+.border-bottom {
+  --bs-border-color: antiquewhite;
+}
 
-    .navbar .nav-item .nav-link {
-      padding: 5px 15px;
-      position: relative;
-    }
+.navbar a {
+  color: antiquewhite;
+}
 
-    .navbar .nav-item .nav-link::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 1px;
-      background-color: #e6e6e6;
-      transition: all 0.5s ease;
-      transform: scale(0);
-    }
+/* Adjusting the color of the hamburger icon in the responsive
+navbar requires changing the stroke in the actual image */
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='antiquewhite' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
 
-    .navbar .nav-item .nav-link.active::before,
-    .navbar .nav-item .nav-link:hover::before {
-      transform: scale(1);
-    }
+.navbar-toggler {
+  border-color: antiquewhite;
+}
+
+/* Navbar active status indicator referenced from
+https://www.youtube.com/watch?v=JznsjrC3TOg */
+.navbar .nav-item .nav-link {
+  padding: 5px 15px;
+  position: relative;
+}
+
+.navbar .nav-item .nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background-color: antiquewhite;
+  transition: all 0.5s ease;
+  transform: scale(0);
+}
+
+.navbar .nav-item .nav-link.active::before,
+.navbar .nav-item .nav-link:hover::before {
+  transform: scale(1);
+}

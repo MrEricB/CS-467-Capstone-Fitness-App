@@ -12,6 +12,7 @@
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/navbar.css')}}">
 
     <!-- Register Service Worker -->
@@ -25,7 +26,7 @@
 
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg bg-dark border-bottom border-body" data-bs-theme="dark">
+    <nav class="navbar navbar-expand-lg bg-dark border-3 border-bottom border-body" data-bs-theme="dark">
       <div class="container-fluid">
         <a class="navbar-brand" href="{{ url_for('challenge_bp.index') }}">Fitness App</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"

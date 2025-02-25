@@ -1,70 +1,74 @@
 {% extends "layout.html" %}
 {% block content %}
-  <h2>Create a Fitness Challenge</h2>
-  <form method="post" enctype="multipart/form-data">
-    {{ form.hidden_tag() }}
-    
-    <div class="mb-3">
-      {{ form.challenge_type.label(class="form-label") }}
-      {{ form.challenge_type(class="form-control") }}
-      {% if form.challenge_type.errors %}
-        <div class="text-danger">
-          {% for error in form.challenge_type.errors %}
-            <span>{{ error }}</span>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
-    
-    <div class="mb-3">
-      {{ form.description.label(class="form-label") }}
-      {{ form.description(class="form-control") }}
-      {% if form.description.errors %}
-        <div class="text-danger">
-          {% for error in form.description.errors %}
-            <span>{{ error }}</span>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
-    
-    <div class="mb-3">
-      {{ form.tags.label(class="form-label") }}
-      {{ form.tags(class="form-control") }}
-    </div>
-    
-    <div class="mb-3">
-      {{ form.image.label(class="form-label") }}
-      {{ form.image(class="form-control") }}
-    </div>
-    
-    <!-- Badge Selection -->
-    <div class="mb-3">
-      {{ form.badges.label(class="form-label") }}
-      <div>
-        {% for value, label in form.badges.choices %}
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="{{ form.badges.name }}" value="{{ value }}" id="badge_{{ loop.index }}">
-            <label class="form-check-label" for="badge_{{ loop.index }}">
-              <img src="{{ url_for('static', filename='badges/' ~ value) }}" alt="{{ label }}" style="max-height:50px;">
-            </label>
+  <div class="container titles">
+    <p class="headers">CREATE A FITNESS CHALLENGE</p>
+  </div>
+  <div class="card content gap border-3">
+    <form method="post" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+      
+      <div class="mb-3">
+        {{ form.challenge_type.label(class="form-label") }}
+        {{ form.challenge_type(class="form-control") }}
+        {% if form.challenge_type.errors %}
+          <div class="text-danger">
+            {% for error in form.challenge_type.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
           </div>
-        {% endfor %}
+        {% endif %}
       </div>
-    </div>
-    
-    <div class="mb-3">
-      {{ form.goals.label(class="form-label") }}
-      {{ form.goals(class="form-control") }}
-      {% if form.goals.errors %}
-        <div class="text-danger">
-          {% for error in form.goals.errors %}
-            <span>{{ error }}</span>
+      
+      <div class="mb-3">
+        {{ form.description.label(class="form-label") }}
+        {{ form.description(class="form-control") }}
+        {% if form.description.errors %}
+          <div class="text-danger">
+            {% for error in form.description.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      
+      <div class="mb-3">
+        {{ form.tags.label(class="form-label") }}
+        {{ form.tags(class="form-control") }}
+      </div>
+      
+      <div class="mb-3">
+        {{ form.image.label(class="form-label") }}
+        {{ form.image(class="form-control") }}
+      </div>
+      
+      <!-- Badge Selection -->
+      <div class="mb-3">
+        {{ form.badges.label(class="form-label") }}
+        <div>
+          {% for value, label in form.badges.choices %}
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="{{ form.badges.name }}" value="{{ value }}" id="badge_{{ loop.index }}">
+              <label class="form-check-label" for="badge_{{ loop.index }}">
+                <img src="{{ url_for('static', filename='badges/' ~ value) }}" alt="{{ label }}" style="max-height:50px;">
+              </label>
+            </div>
           {% endfor %}
         </div>
-      {% endif %}
-    </div>
-    
-    {{ form.submit(class="btn btn-primary") }}
-  </form>
+      </div>
+      
+      <div class="mb-3">
+        {{ form.goals.label(class="form-label") }}
+        {{ form.goals(class="form-control") }}
+        {% if form.goals.errors %}
+          <div class="text-danger">
+            {% for error in form.goals.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      
+      {{ form.submit(class="btn btn-primary") }}
+    </form>
+  </div>
 {% endblock %}

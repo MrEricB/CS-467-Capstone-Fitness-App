@@ -1,17 +1,21 @@
 {% extends "layout.html" %}
 {% block content %}
-  <h2>Your Favorites</h2>
-  <ul class="list-group">
-    {% for challenge in challenges %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <a href="{{ url_for('challenge_bp.challenge', challenge_id=challenge.id) }}">
-                {{ challenge.challenge_type }}: {{ challenge.description }}
-            </a>
-            <form method="post" action="{{ url_for('challenge_bp.remove_from_favorites', challenge_id=challenge.id) }}">
-                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
-            </form>
-        </li>
-    {% endfor %}
-</ul>
+  <div class="container titles">
+    <p class="headers">YOUR FAVORITES</p>
+  </div>
+  <div class="card content gap border-3">
+    <ul class="list-group">
+        {% for challenge in challenges %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="{{ url_for('challenge_bp.challenge', challenge_id=challenge.id) }}">
+                    {{ challenge.challenge_type }}: {{ challenge.description }}
+                </a>
+                <form method="post" action="{{ url_for('challenge_bp.remove_from_favorites', challenge_id=challenge.id) }}">
+                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
 
 {% endblock %}
