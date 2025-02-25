@@ -85,13 +85,19 @@ def challenge(challenge_id):
     chat_messages = ChatMessage.query.filter_by(challenge_id=challenge_id).order_by(ChatMessage.timestamp.asc()).all()
 
     completed_goal_ids = []
+    is_favorited = False  # Default value
     if session.get('user_id'):
+        # Determine completed goals
         statuses = UserChallengeStatus.query.filter_by(
             user_id=session['user_id'],
             challenge_id=challenge_id,
             is_complete=True
         ).all()
         completed_goal_ids = [status.goal_id for status in statuses]
+        # Check if this challenge is favorited by the user
+        favorite = Favorite.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first()
+        if favorite:
+            is_favorited = True
 
     is_completed = False
     if session.get('user_id'):
@@ -106,6 +112,7 @@ def challenge(challenge_id):
                            chat_messages=chat_messages,
                            completed_goal_ids=completed_goal_ids,
                            is_completed=is_completed,
+                           is_favorited=is_favorited,
                            chat_form=chat_form)
 
 @challenge_bp.route('/challenge/<int:challenge_id>/chat', methods=['POST'])
