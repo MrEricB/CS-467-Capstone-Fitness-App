@@ -3,8 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, session,
 from werkzeug.utils import secure_filename
 from models import db, Challenge, Goal, ChallengeBadge, ChatMessage, UserChallengeStatus, CompletedChallenge, Favorite
 from forms import ChallengeForm, ChatForm
-
-from flask import current_app # need to access app.xxxxx
+from flask import current_app
 
 challenge_bp = Blueprint('challenge_bp', __name__)
 
@@ -12,7 +11,9 @@ challenge_bp = Blueprint('challenge_bp', __name__)
 def index():
     challenges = Challenge.query.order_by(Challenge.created_at.desc()).all()
     user_badges = []
+    completed_challenge_ids = []
     if session.get('user_id'):
+        # Gather badges from any completed challenges (for display purposes)
         completed_chals = CompletedChallenge.query.filter_by(user_id=session['user_id']).all()
         for comp in completed_chals:
             challenge_obj = Challenge.query.get(comp.challenge_id)
@@ -20,8 +21,11 @@ def index():
                 for badge in challenge_obj.badges:
                     user_badges.append(badge.badge)
         user_badges = list(set(user_badges))
+        
+        # Get IDs of challenges the user has marked as completed (regardless of full completion)
+        completed_challenge_ids = [comp.challenge_id for comp in CompletedChallenge.query.filter_by(user_id=session['user_id']).all()]
     
-    return render_template('index.html', challenges=challenges, user_badges=user_badges)
+    return render_template('index.html', challenges=challenges, user_badges=user_badges, completed_challenge_ids=completed_challenge_ids)
 
 @challenge_bp.route('/create', methods=['GET', 'POST'])
 def create_challenge():
@@ -81,13 +85,19 @@ def challenge(challenge_id):
     chat_messages = ChatMessage.query.filter_by(challenge_id=challenge_id).order_by(ChatMessage.timestamp.asc()).all()
 
     completed_goal_ids = []
+    is_favorited = False  # Default value
     if session.get('user_id'):
+        # Determine completed goals
         statuses = UserChallengeStatus.query.filter_by(
             user_id=session['user_id'],
             challenge_id=challenge_id,
             is_complete=True
         ).all()
         completed_goal_ids = [status.goal_id for status in statuses]
+        # Check if this challenge is favorited by the user
+        favorite = Favorite.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first()
+        if favorite:
+            is_favorited = True
 
     is_completed = False
     if session.get('user_id'):
@@ -102,6 +112,7 @@ def challenge(challenge_id):
                            chat_messages=chat_messages,
                            completed_goal_ids=completed_goal_ids,
                            is_completed=is_completed,
+                           is_favorited=is_favorited,
                            chat_form=chat_form)
 
 @challenge_bp.route('/challenge/<int:challenge_id>/chat', methods=['POST'])
@@ -134,27 +145,33 @@ def complete_challenge(challenge_id):
         flash('Please log in.')
         return redirect(url_for('user_bp.login'))
 
+    user_id = session['user_id']
+    
     # Get all goals for the challenge
-    goals = Goal.query.filter_by(challenge_id=challenge_id).all()
-    goal_ids = [goal.id for goal in goals]
+    goal_ids = {goal.id for goal in Goal.query.filter_by(challenge_id=challenge_id).all()}
 
-    # Get completed goals by the user
-    completed_goals = UserChallengeStatus.query.filter_by(
-        user_id=session['user_id'],
-        challenge_id=challenge_id,
-        is_complete=True
-    ).all()
-    completed_goal_ids = [status.goal_id for status in completed_goals]
+    # Get completed goals for the user
+    completed_goal_ids = {status.goal_id for status in UserChallengeStatus.query.filter_by(
+        user_id=user_id, challenge_id=challenge_id, is_complete=True).all()}
 
-    # Check if all goals are completed
-    if set(goal_ids) == set(completed_goal_ids):
-        if not CompletedChallenge.query.filter_by(user_id=session['user_id'], challenge_id=challenge_id).first():
-            comp = CompletedChallenge(user_id=session['user_id'], challenge_id=challenge_id)
+    # **NEW LOGIC**: Challenge is considered complete if at least one goal is completed
+    has_completed_any_goal = bool(completed_goal_ids)
+
+    if has_completed_any_goal:
+        # Check if the challenge is already marked as completed
+        comp = CompletedChallenge.query.filter_by(user_id=user_id, challenge_id=challenge_id).first()
+
+        if not comp:
+            comp = CompletedChallenge(user_id=user_id, challenge_id=challenge_id, fully_completed=(goal_ids == completed_goal_ids))
             db.session.add(comp)
-            db.session.commit()
-            flash('Challenge completed! You are now on the Wall of Fame.')
+        else:
+            comp.fully_completed = (goal_ids == completed_goal_ids)  # Still track if fully completed
+
+        db.session.commit()
+
+        flash('Challenge marked as completed! Keep going to complete all goals for Wall of Fame.')
     else:
-        flash('You must complete all goals before completing the challenge.')
+        flash('Complete at least one goal to complete this challenge.')
 
     return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
 
@@ -186,23 +203,26 @@ def complete_goal(challenge_id, goal_id):
     flash('Goal marked as complete!')
     return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
 
-
-# TODO: flush out; only users who have completed all the goals should be in wall of fame
-@challenge_bp.route('/wall_of_fame')
-def wall_of_fame():
-    wall_entries = CompletedChallenge.query.order_by(CompletedChallenge.completed_at.desc()).all()
-    return render_template('wall_of_fame.html', wall_entries=wall_entries)
+# Wall of Fame for a specific challenge - only show if fully completed
+@challenge_bp.route('/<int:challenge_id>/wall_of_fame')
+def wall_of_fame(challenge_id):
+    challenge_obj = Challenge.query.get(challenge_id)
+    if not challenge_obj:
+        flash('Challenge not found.')
+        return redirect(url_for('challenge_bp.index'))
+    
+    wall_entries = CompletedChallenge.query.filter_by(challenge_id=challenge_id, fully_completed=True)\
+                    .order_by(CompletedChallenge.completed_at.desc()).all()
+    return render_template('challenge_wall_of_fame.html', wall_entries=wall_entries, challenge=challenge_obj)
 
 # ---------------------------
-# Search Route
-# NOTE: not implemented or tested yet
+# Search Route (not implemented/tested yet)
 # ---------------------------
 @challenge_bp.route('/search')
 def search():
     query = request.args.get('query', '')
     challenges = Challenge.query.filter(Challenge.tags.contains(query)).all()
     return render_template('index.html', challenges=challenges)
-
 
 @challenge_bp.route('/<int:challenge_id>/favorite', methods=['POST'])
 def add_to_favorites(challenge_id):
@@ -220,7 +240,6 @@ def add_to_favorites(challenge_id):
         flash('Challenge is already in your favorites.')
 
     return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
-
 
 @challenge_bp.route('/<int:challenge_id>/unfavorite', methods=['POST'])
 def remove_from_favorites(challenge_id):

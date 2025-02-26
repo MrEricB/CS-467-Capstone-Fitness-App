@@ -14,16 +14,19 @@
     </div>
     <div id="btn-div">
       {% if session.get('user_id') %}
-        {% set is_favorited = challenge in session.get('favorites', []) %}
-        <form method="post" action="{{ url_for('challenge_bp.add_to_favorites', challenge_id=challenge.id) }}" style="display: inline;">
-            <button type="submit" class="btn btn-outline-warning mt-3">
-                {% if is_favorited %}
-                    ★ Unfavorite
-                {% else %}
-                    ☆ Add to Favorites
-                {% endif %}
-            </button>
-        </form>
+      {% if is_favorited %}
+      <form method="post" action="{{ url_for('challenge_bp.remove_from_favorites', challenge_id=challenge.id) }}" style="display: inline;">
+          <button type="submit" class="btn btn-outline-warning">
+              ★ Unfavorite
+          </button>
+      </form>
+    {% else %}
+      <form method="post" action="{{ url_for('challenge_bp.add_to_favorites', challenge_id=challenge.id) }}" style="display: inline;">
+          <button type="submit" class="btn btn-outline-warning">
+              ☆ Add to Favorites
+          </button>
+      </form>
+    {% endif %}
         <a href="{{ url_for('challenge_bp.wall_of_fame', challenge_id=challenge.id) }}" class="btn btn-outline-success mt-3">
           View Wall of Fame
         </a>
@@ -98,13 +101,12 @@
     {% if session.get('user_id') %}
       {% if not is_completed %}
         <form method="post" action="{{ url_for('challenge_bp.complete_challenge', challenge_id=challenge.id) }}">
-          <button type="submit" class="btn btn-success"
-              {% if goals|length != completed_goal_ids|length %} disabled {% endif %}>
+          <button type="submit" class="btn btn-success">
               Complete Challenge
           </button>
         </form>
         {% if goals|length != completed_goal_ids|length %}
-            <p class="text-warning mt-2">Complete all goals to unlock this button.</p>
+            <p class="text-warning mt-2">You can only enter the Wall of Fame if you complete all goals.  Are you ready?</p>
         {% endif %}
       {% else %}
         <p class="text-success">Challenge Completed!</p>
