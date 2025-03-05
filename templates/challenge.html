@@ -9,24 +9,26 @@
       <strong>Description:</strong> {{ challenge.description }}<br>
       <strong>Tags:</strong> {{ challenge.tags }}<br>
       {% if challenge.image %}
-        <div><img src="{{ url_for('static', filename='uploads/' ~ challenge.image) }}" alt="Challenge Image" style="max-width:300px;"></div>
+        <div>
+          <img src="{{ url_for('static', filename='uploads/' ~ challenge.image) }}" alt="Challenge Image" style="max-width:300px;">
+        </div>
       {% endif %}
     </div>
     <div id="btn-div">
       {% if session.get('user_id') %}
-      {% if is_favorited %}
-      <form method="post" action="{{ url_for('challenge_bp.remove_from_favorites', challenge_id=challenge.id) }}" style="display: inline;">
-          <button type="submit" class="btn btn-outline-warning">
+        {% if is_favorited %}
+          <form method="post" action="{{ url_for('challenge_bp.remove_from_favorites', challenge_id=challenge.id) }}" style="display: inline;">
+            <button type="submit" class="btn btn-outline-warning">
               ★ Unfavorite
-          </button>
-      </form>
-    {% else %}
-      <form method="post" action="{{ url_for('challenge_bp.add_to_favorites', challenge_id=challenge.id) }}" style="display: inline;">
-          <button type="submit" class="btn btn-outline-warning">
+            </button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ url_for('challenge_bp.add_to_favorites', challenge_id=challenge.id) }}" style="display: inline;">
+            <button type="submit" class="btn btn-outline-warning">
               ☆ Add to Favorites
-          </button>
-      </form>
-    {% endif %}
+            </button>
+          </form>
+        {% endif %}
         <a href="{{ url_for('challenge_bp.wall_of_fame', challenge_id=challenge.id) }}" class="btn btn-outline-success mt-3">
           View Wall of Fame
         </a>
@@ -53,7 +55,7 @@
           {% else %}
             {% if session.get('user_id') %}
               <a href="{{ url_for('challenge_bp.complete_goal', challenge_id=challenge.id, goal_id=goal.id) }}"
-                class="btn btn-sm btn-outline-primary float-end">Mark as Complete</a>
+                 class="btn btn-sm btn-outline-primary float-end">Mark as Complete</a>
             {% endif %}
           {% endif %}
         </li>
@@ -67,7 +69,8 @@
         <div class="mb-2">
           <strong>{{ msg.user.username }}</strong>: {{ msg.message }}
           {% if msg.image %}
-            <br><img src="{{ url_for('static', filename='uploads/' ~ msg.image) }}" alt="Chat Image" style="max-width:200px;">
+            <br>
+            <img src="{{ url_for('static', filename='uploads/' ~ msg.image) }}" alt="Chat Image" style="max-width:200px;">
           {% endif %}
         </div>
       {% endfor %}
@@ -101,12 +104,12 @@
     {% if session.get('user_id') %}
       {% if not is_completed %}
         <form method="post" action="{{ url_for('challenge_bp.complete_challenge', challenge_id=challenge.id) }}">
-          <button type="submit" class="btn btn-success">
-              Complete Challenge
+          <button type="submit" class="btn btn-success" id="complete-btn">
+            Complete Challenge
           </button>
         </form>
         {% if goals|length != completed_goal_ids|length %}
-            <p class="text-warning mt-2">You can only enter the Wall of Fame if you complete all goals.  Are you ready?</p>
+          <p class="text-warning mt-2">You can only enter the Wall of Fame if you complete all goals. Are you ready?</p>
         {% endif %}
       {% else %}
         <p class="text-success">Challenge Completed!</p>
@@ -115,4 +118,18 @@
       <p>Please log in to complete the challenge.</p>
     {% endif %}
   </div>
+
+  <!-- Include canvas-confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+  <!-- Trigger confetti effect if challenge is completed -->
+  {% if request.args.get('confetti') %}
+  <script>
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  </script>
+  {% endif %}
 {% endblock %}

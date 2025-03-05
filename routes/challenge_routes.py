@@ -139,8 +139,8 @@ def chat(challenge_id):
 
     return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
 
-@challenge_bp.route('/<int:challenge_id>/complete', methods=['POST'])
-def complete_challenge(challenge_id):
+# @challenge_bp.route('/<int:challenge_id>/complete', methods=['POST'])
+# def complete_challenge(challenge_id):
     if 'user_id' not in session:
         flash('Please log in.')
         return redirect(url_for('user_bp.login'))
@@ -170,11 +170,52 @@ def complete_challenge(challenge_id):
         db.session.commit()
 
         flash('Challenge marked as completed! Keep going to complete all goals for Wall of Fame.')
+
+    else:
+        flash('Complete at least one goal to complete this challenge.')
+
+    return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id, confetti='false'))
+@challenge_bp.route('/<int:challenge_id>/complete', methods=['POST'])
+def complete_challenge(challenge_id):
+    if 'user_id' not in session:
+        flash('Please log in.')
+        return redirect(url_for('user_bp.login'))
+
+    user_id = session['user_id']
+    
+    # Get all goals for the challenge
+    goal_ids = {goal.id for goal in Goal.query.filter_by(challenge_id=challenge_id).all()}
+
+    # Get completed goals for the user
+    completed_goal_ids = {status.goal_id for status in UserChallengeStatus.query.filter_by(
+        user_id=user_id, challenge_id=challenge_id, is_complete=True).all()}
+
+    has_completed_any_goal = bool(completed_goal_ids)
+
+    if has_completed_any_goal:
+        # Check if the challenge is already marked as completed
+        comp = CompletedChallenge.query.filter_by(user_id=user_id, challenge_id=challenge_id).first()
+
+        if not comp:
+            # First time completion – mark as complete and add confetti flag
+            comp = CompletedChallenge(
+                user_id=user_id, 
+                challenge_id=challenge_id, 
+                fully_completed=(goal_ids == completed_goal_ids)
+            )
+            db.session.add(comp)
+            db.session.commit()
+            flash('Challenge marked as completed! Keep going to complete all goals for Wall of Fame.')
+            return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id, confetti='true'))
+        else:
+            # Already completed – just update if necessary and don't trigger confetti
+            comp.fully_completed = (goal_ids == completed_goal_ids)
+            db.session.commit()
+            flash('Challenge already marked as completed.')
     else:
         flash('Complete at least one goal to complete this challenge.')
 
     return redirect(url_for('challenge_bp.challenge', challenge_id=challenge_id))
-
 
 @challenge_bp.route('/<int:challenge_id>/complete_goal/<int:goal_id>')
 def complete_goal(challenge_id, goal_id):
@@ -215,9 +256,6 @@ def wall_of_fame(challenge_id):
                     .order_by(CompletedChallenge.completed_at.desc()).all()
     return render_template('challenge_wall_of_fame.html', wall_entries=wall_entries, challenge=challenge_obj)
 
-# ---------------------------
-# Search Route (not implemented/tested yet)
-# ---------------------------
 @challenge_bp.route('/search')
 def search():
     query = request.args.get('query', '')
